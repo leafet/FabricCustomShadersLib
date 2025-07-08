@@ -1,7 +1,7 @@
 
 # Mod that implements OpengGL like render pipeline.
 
-[![ru](https://img.shields.io/badge/lang-ru-green.svg)]
+[![ru](https://img.shields.io/badge/lang-ru-green.svg)](https://github.com/leafet/FabricCustomShadersLib/blob/master/README.ru.md)
 
 So that mod is using combination of fabric rendering api, OpenGL calls and minecraft render functions to draw diffrent kinds of VFX.
 

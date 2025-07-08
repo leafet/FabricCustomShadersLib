@@ -1,10 +1,10 @@
 
-# Mod that implements OpengGL like render pipeline.
+# Мод, реализующий OpengGL render pipeline (примерно).
 
 [![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/leafet/FabricCustomShadersLib/blob/master/README.md)
 
-So that mod is using combination of fabric rendering api, OpenGL calls and minecraft render functions to draw diffrent kinds of VFX.
+Итак, этот мод использует комбинацию API рендеринга fabric, вызовов OpenGL и функций рендеринга Minecraft для отрисовки различных видов VFX.
 
-Now there is only one effect that properly works, a sphere which diapear upon approaching to it.
+Пока есть только один эффект, который работает должным образом, сфера, которая исчезает при приближении к ней.
 
-Shaders are loaded using Minecraft.gl methods, when vertices loading and buffers are handled by fabric renderin api, and lwjgl used to acess shader uniforms.
+Шейдеры загружаются с помощью методов Minecraft.gl, когда загрузка вершин и буферов обрабатывается API рендеринга fabric, а lwjgl используется для доступа к униформам шейдеров.

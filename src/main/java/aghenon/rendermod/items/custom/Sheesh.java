@@ -3,6 +3,7 @@ package aghenon.rendermod.items.custom;
 import aghenon.rendermod.network.ModPackets;
 import aghenon.rendermod.network.payloads.SphereEffectPayload;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -10,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
@@ -45,24 +47,13 @@ public class Sheesh extends Item {
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
 
-        ItemStack stack = user.getStackInHand(hand);
-
         if (!world.isClient()){
 
            Vec3d pos = user.raycast(1000, 0.1F, false).getPos();
 
-//            world.createExplosion(
-//                    user,
-//                    pos.x,
-//                    pos.y,
-//                    pos.z,
-//                    15.0F,
-//                    false,
-//                    World.ExplosionSourceType.TNT
-//            );
-
-            sendSphereEffect((ServerPlayerEntity) user, pos);
-
+           for (ServerPlayerEntity player : PlayerLookup.world((ServerWorld) world)){
+               sendSphereEffect(player, pos);
+           }
 
         }
 
@@ -78,8 +69,6 @@ public class Sheesh extends Item {
     }
 
     private void bindItem(PlayerEntity user){
-
-
 
     }
 }

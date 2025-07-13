@@ -30,10 +30,8 @@ public class SphereEffectRenderer {
     public static void init(){
 
         ClientPlayNetworking.registerGlobalReceiver(SphereEffectPayload.ID, ((sphereEffectPayload, context) -> {
-            context.client().execute(() -> {
-                ACTIVE_SPHERES.add(new SphereInstance(sphereEffectPayload.pos()));
-                treshold = 1000;
-            });
+            ACTIVE_SPHERES.add(new SphereInstance(sphereEffectPayload.pos()));
+            treshold = 1000;
         }));
 
         ClientTickEvents.END_CLIENT_TICK.register(client ->{

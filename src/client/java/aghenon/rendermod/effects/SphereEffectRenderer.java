@@ -49,10 +49,9 @@ public class SphereEffectRenderer {
                         (float) sphere.position.z
                 );
 
-                // Get camera rotation and invert it for view matrix
                 Matrix4f viewMatrix = camera.getRotation().get(new Matrix4f());
-                viewMatrix.invert(); // Invert the rotation matrix
-                // Apply camera translation
+                viewMatrix.invert();
+
                 viewMatrix.translate(
                         (float) -camera.getPos().x,
                         (float) -camera.getPos().y,
@@ -62,17 +61,14 @@ public class SphereEffectRenderer {
                 // Combine: view * model
                 Matrix4f modelViewMatrix = new Matrix4f(viewMatrix).mul(modelMatrix);
 
-                renderSphere(modelViewMatrix, modelMatrix, sphere, context, camera.getPos().toVector3f());
+                Vector3f cameraPos = camera.getPos().toVector3f();
+
+                renderSphere(modelViewMatrix, modelMatrix, sphere, context, cameraPos, viewMatrix);
             }
         });
     }
 
-    private static float easeOutCirc(float x) {
-        x = 1 - x;
-        return x >= 1.0f ? 1.0f : 1.0f - (float) Math.pow(2, -10 * x);
-    }
-
-    private static void renderSphere(Matrix4f modelViewMat, Matrix4f modelMat, SphereInstance sphere, WorldRenderContext context, Vector3f cameraPos) {
+    private static void renderSphere(Matrix4f modelViewMat, Matrix4f modelMat, SphereInstance sphere, WorldRenderContext context, Vector3f cam, Matrix4f viewMatrix) {
 
         float scale = 10.0f;
 
@@ -84,9 +80,14 @@ public class SphereEffectRenderer {
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(
-                VertexFormat.DrawMode.TRIANGLE_STRIP,
-                VertexFormats.POSITION_COLOR
+                VertexFormat.DrawMode.QUADS,
+                VertexFormats.POSITION
         );
+
+        buffer.vertex(-1.0f, -1.0f, 0.0f);
+        buffer.vertex(1.0f, -1.0f, 0.0f);
+        buffer.vertex(1.0f, 1.0f, 0.0f);
+        buffer.vertex(-1.0f, 1.0f, 0.0f);
 
         ShaderProgram shader = ShaderHandler.MY_SPHERE_SHADER;
         if (shader == null) {
@@ -95,63 +96,34 @@ public class SphereEffectRenderer {
 
         shader.bind();
 
-        int projLoc = GL20.glGetUniformLocation(shader.getGlRef(), "ProjectionMat");
-        int modelViewLoc = GL20.glGetUniformLocation(shader.getGlRef(), "ModelViewMat");
-        int modelLoc = GL20.glGetUniformLocation(shader.getGlRef(), "ModelMat");
-        int playerPosLoc = GL20.glGetUniformLocation(shader.getGlRef(), "u_playerPos");
+        Vector3f center = sphere.position.toVector3f();
 
-        Matrix4f projectionMatrix = context.projectionMatrix();
+        int camPosLoc = GL20.glGetUniformLocation(shader.getGlRef(), "u_cameraPos");
+        int sphereCenterLoc = GL20.glGetUniformLocation(shader.getGlRef(), "u_sphereCenter");
+        int radiusLoc = GL20.glGetUniformLocation(shader.getGlRef(), "u_sphereRadius");
+        int invProjLoc = GL20.glGetUniformLocation(shader.getGlRef(), "u_inverseProjectionMatrix");
+        int invViewLoc = GL20.glGetUniformLocation(shader.getGlRef(), "u_inverseViewMatrix");
 
-        float[] projArray = new float[16];
-        float[] mvArray = new float[16];
-        float[] modelArray = new float[16];
+        GL20.glUniform3f(camPosLoc, cam.x, cam.y, cam.z);
+        GL20.glUniform3f(sphereCenterLoc, center.x, center.y, center.z);
+        GL20.glUniform1f(radiusLoc, scale);
 
-        projectionMatrix.get(projArray);
-        modelViewMat.get(mvArray);
-        modelMat.get(modelArray);
+        Matrix4f invProj = new Matrix4f(context.projectionMatrix()).invert();
+        Matrix4f invView = new Matrix4f(viewMatrix).invert();
 
-        GL20.glUniformMatrix4fv(projLoc, false, projArray);
-        GL20.glUniformMatrix4fv(modelViewLoc, false, mvArray);
-        GL20.glUniformMatrix4fv(modelLoc, false, modelArray);
-        GL20.glUniform3f(playerPosLoc, cameraPos.x, cameraPos.y, cameraPos.z);
+        float[] invProjArray = new float[16];
+        float[] invViewArray = new float[16];
+        invProj.get(invProjArray);
+        invView.get(invViewArray);
 
-        buildSphere(buffer, scale, 0.5f);
+        GL20.glUniformMatrix4fv(invProjLoc, false, invProjArray);
+        GL20.glUniformMatrix4fv(invViewLoc, false, invViewArray);
 
         BufferRenderer.draw(buffer.end());
 
         RenderSystem.enableCull();
         RenderSystem.disableBlend();
 
-    }
-
-    private static float[] makeProjMatrix(Matrix4f projM, Matrix4f viewModelM){
-        float[] res = new float[16];
-        projM.mul(viewModelM).get(res);
-        return res;
-    }
-
-    private static void buildSphere(BufferBuilder buffer, float scale, float alpha) {
-        int stacks = 64;
-        int sectors = 64;
-        Color color = new Color(1f, 1f, 1f, alpha);
-
-        for (int i = 0; i < stacks; i++) {
-            double phi1 = Math.PI * i / stacks;
-            double phi2 = Math.PI * (i + 1) / stacks;
-            for (int j = 0; j <= sectors; j++) {
-                double theta = 2.0 * Math.PI * j / sectors;
-                // Вершины в локальных координатах (без масштаба и смещения)
-                float x1 = (float)(Math.sin(phi1) * Math.cos(theta));
-                float y1 = (float)(Math.cos(phi1));
-                float z1 = (float)(Math.sin(phi1) * Math.sin(theta));
-                float x2 = (float)(Math.sin(phi2) * Math.cos(theta));
-                float y2 = (float)(Math.cos(phi2));
-                float z2 = (float)(Math.sin(phi2) * Math.sin(theta));
-
-                buffer.vertex(x1 * scale, y1 * scale, z1 * scale).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-                buffer.vertex(x2 * scale, y2 * scale, z2 * scale).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-            }
-        }
     }
 
     private static class SphereInstance{

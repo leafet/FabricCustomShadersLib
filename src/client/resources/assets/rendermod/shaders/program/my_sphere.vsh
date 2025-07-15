@@ -1,23 +1,10 @@
 #version 150
 
 in vec3 Position;
-
-uniform mat4 ModelMat;
-uniform mat4 ModelViewMat;
-uniform mat4 ProjectionMat;
-uniform vec3 u_playerPos;
-
-out vec4 vertexColor;
+out vec2 v_uv;
 
 void main() {
-    vec4 worldPos = ModelMat * vec4(Position, 1.0);
-    float dist = distance(worldPos.xyz, u_playerPos);
-
-    if (dist >= 5.0) {
-        vertexColor = vec4(1.0, 0.0, 0.0, 0.6);
-    } else {
-        vertexColor = vec4(1.0, 0.0, 0.0, 0);
-    }
-
-    gl_Position = ProjectionMat * ModelViewMat * vec4(Position, 1.0);
+    // UV из позиции [-1,1] → [0,1]
+    v_uv = Position.xy * 0.5 + 0.5;
+    gl_Position = vec4(Position, 1.0);
 }

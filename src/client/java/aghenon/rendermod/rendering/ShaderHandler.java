@@ -1,14 +1,10 @@
 package aghenon.rendermod.rendering;
 
-import aghenon.rendermod.RenderMod;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gl.CompiledShader;
-import net.minecraft.client.gl.ShaderLoader;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceFactory;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 

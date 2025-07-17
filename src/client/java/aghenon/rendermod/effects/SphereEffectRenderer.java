@@ -76,7 +76,7 @@ public class SphereEffectRenderer {
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest(); // Enable depth testing so spheres are blocked by blocks
         RenderSystem.disableCull();
-        RenderSystem.depthMask(false); // Enable depth writing
+        RenderSystem.depthMask(true); // Enable depth writing
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(
@@ -118,6 +118,19 @@ public class SphereEffectRenderer {
 
         GL20.glUniformMatrix4fv(invProjLoc, false, invProjArray);
         GL20.glUniformMatrix4fv(invViewLoc, false, invViewArray);
+
+        int viewLoc = GL20.glGetUniformLocation(shader.getGlRef(), "u_viewMatrix");
+        int projLoc = GL20.glGetUniformLocation(shader.getGlRef(), "u_projectionMatrix");
+
+        Matrix4f projMatrix = new Matrix4f(context.projectionMatrix());
+
+        float[] projArray = new float[16];
+        float[] viewArray = new float[16];
+        projMatrix.get(projArray);
+        viewMatrix.get(viewArray);
+
+        GL20.glUniformMatrix4fv(viewLoc, false, viewArray);
+        GL20.glUniformMatrix4fv(projLoc, false, projArray);
 
         BufferRenderer.draw(buffer.end());
 
